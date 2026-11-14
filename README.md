@@ -1,5 +1,7 @@
 # Hybrid RAG Demo 🔎🤖
 
+[![CI](https://github.com/lashari/rag-demo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/lashari/rag-demo/actions/workflows/ci.yml)
+
 A small, clean **Retrieval-Augmented Generation** service that shows how to do RAG
 *properly*: **hybrid retrieval** (dense vector search **+** BM25 keyword search)
 fused with **Reciprocal Rank Fusion (RRF)**, grounded answers with **inline
