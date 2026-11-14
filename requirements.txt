@@ -5,3 +5,4 @@ uvicorn>=0.27
 python-dotenv>=1.0
 # Optional — only needed for live semantic embeddings + generated answers:
 openai>=1.0
+anthropic>=2.0; python_version >= "3.11"

@@ -115,8 +115,7 @@ def test_openai_generator_with_no_results_still_asks(fake_openai):
 
 # --- backend selection ------------------------------------------------------
 
-def test_get_generator_offline_without_key(monkeypatch):
-    monkeypatch.setattr(config, "OPENAI_API_KEY", "")
+def test_get_generator_offline_without_keys():
     assert isinstance(generate.get_generator(), generate.ExtractiveGenerator)
 
 
