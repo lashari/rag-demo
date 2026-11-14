@@ -5,14 +5,7 @@ import sys
 
 import pytest
 
-from ragdemo import cli, config
-
-
-@pytest.fixture(autouse=True)
-def offline(monkeypatch):
-    # Force the offline hash embedder + extractive generator even if a local
-    # .env sets OPENAI_API_KEY, so these tests never call the API.
-    monkeypatch.setattr(config, "OPENAI_API_KEY", "")
+from ragdemo import cli
 
 
 @pytest.fixture

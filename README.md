@@ -9,8 +9,8 @@ citations**, exposed over a **FastAPI** API and a CLI.
 
 It is intentionally compact and dependency-light, and it **runs fully offline with
 zero setup** (deterministic hash embeddings + extractive answers) — then upgrades
-to real semantic embeddings and LLM-generated answers the moment you add an
-`OPENAI_API_KEY`.
+to LLM-generated answers from **Claude** the moment you add an `ANTHROPIC_API_KEY`
+(or real semantic embeddings + answers with an `OPENAI_API_KEY`).
 
 > This mirrors the architecture of a production RAG system I build and operate that
 > answers from **12M+ document vectors in ~0.07s** — distilled down to a readable,
@@ -62,16 +62,41 @@ uvicorn app:app --reload
 #   Interactive docs: http://127.0.0.1:8000/docs
 ```
 
-### Enable real semantic search + generated answers
+### Generate answers with Claude
 
 ```bash
-cp .env.example .env      # then set OPENAI_API_KEY=sk-...
+pip install anthropic     # optional; needs Python 3.11+
+cp .env.example .env      # then set ANTHROPIC_API_KEY=sk-ant-...
 python -m ragdemo.cli ask "How does quantization affect search latency?"
 ```
 
-With a key, the pipeline uses OpenAI embeddings (`text-embedding-3-small`) and
-generates fluent, cited answers with `gpt-4o-mini`. Without a key, it uses the
-offline hash embedder and returns the top passages with citations.
+With `ANTHROPIC_API_KEY` set, answers are written by Claude through the official
+Anthropic SDK, grounded in the retrieved passages with inline `[n]` citations.
+
+- **Model:** `claude-opus-5-5` by default. Set `CLAUDE_MODEL` to change it, e.g.
+  `claude-sonnet-5-5` or `claude-haiku-5-5` for lower cost per question.
+- **Effort:** `CLAUDE_EFFORT` (`low` | `medium` | `high` | `xhigh` | `max`),
+  default `medium`. `low` is usually enough for short factual answers.
+- **Refusal fallback:** on models that support it, the request opts into the
+  API's server-side fallback, so if Claude declines a question the API retries it
+  on a fallback model within the same call. If every model declines, the answer
+  says so plainly.
+
+Claude doesn't provide an embeddings API, so retrieval keeps the offline hash
+embedder unless you also set `OPENAI_API_KEY`.
+
+### Or use OpenAI
+
+```bash
+cp .env.example .env      # then set OPENAI_API_KEY=sk-...
+```
+
+With an OpenAI key, the pipeline uses OpenAI embeddings (`text-embedding-3-small`)
+and, if no Anthropic key is set, generates answers with `gpt-4o-mini`. With both
+keys, you get OpenAI embeddings and Claude answers.
+
+Without any key, it uses the offline hash embedder and returns the top passages
+with citations.
 
 ---
 
@@ -81,7 +106,7 @@ offline hash embedder and returns the top passages with citations.
 $ python -m ragdemo.cli ask "Why combine dense and lexical search?"
 
 Answer:
-(extractive answer — set OPENAI_API_KEY for a generated one)
+(extractive answer — set ANTHROPIC_API_KEY or OPENAI_API_KEY for a generated one)
 
 Dense vector search and lexical (keyword) search have complementary strengths,
 so the strongest retrieval systems combine both — this is called hybrid retrieval. [1] ...
@@ -103,7 +128,7 @@ ragdemo/
   embed.py      OpenAI + offline hash embedders (pluggable)
   store.py      in-memory cosine vector store (Qdrant in production)
   retrieve.py   hybrid dense + BM25 retrieval, RRF fusion
-  generate.py   grounded answers w/ citations (OpenAI + extractive fallback)
+  generate.py   grounded answers w/ citations (Claude, OpenAI + extractive fallback)
   pipeline.py   ingest -> retrieve -> answer
   cli.py        `python -m ragdemo.cli ask "..."`
 app.py          FastAPI service (/query, /health, /docs)
@@ -160,7 +185,7 @@ If a test genuinely needs the network, mark it with `@pytest.mark.enable_socket`
 - [ ] Qdrant backend toggle (`STORE=qdrant`)
 - [ ] Optional cross-encoder re-ranker
 - [ ] Streaming responses (SSE)
-- [ ] Anthropic / Claude generator option
+- [x] Anthropic / Claude generator option
 
 ## License
 MIT © 2026 Naeem Lashari
