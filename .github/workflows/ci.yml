@@ -37,8 +37,24 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest pytest-socket
+          pip install -r requirements.txt pytest pytest-socket pytest-cov
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
-      - name: Run offline test suite (network disabled)
-        run: python -m pytest -q --disable-socket
+      - name: Run offline test suite (network disabled) with coverage
+        run: >-
+          python -m pytest -q --disable-socket
+          --cov=ragdemo --cov-report=term-missing --cov-report=xml
+
+      - name: Add coverage table to job summary
+        if: always() && hashFiles('.coverage') != ''
+        run: |
+          echo "### Coverage (Python ${{ matrix.python-version }})" >> "$GITHUB_STEP_SUMMARY"
+          python -m coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage.xml
+        if: always() && matrix.python-version == '3.12' && hashFiles('coverage.xml') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 14

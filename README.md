@@ -133,13 +133,16 @@ pull request to `main`, on **Python 3.11 and 3.12**.
   failure from cancelling the other.
 - **Superseded runs are cancelled** when you push again to the same branch or PR.
 - **Read-only token** — the workflow runs with `permissions: contents: read`.
+- **Coverage report** — `pytest-cov` prints line coverage for `ragdemo/` in the
+  job log, adds a coverage table to the run summary, and uploads `coverage.xml`
+  (from the Python 3.12 job) as a build artifact.
 - **Cached pip installs**, keyed on `requirements.txt` and `requirements-dev.txt`.
 
 To match CI locally:
 
 ```bash
-pip install -r requirements.txt -r requirements-dev.txt pytest-socket
-python -m pytest -q --disable-socket
+pip install -r requirements.txt -r requirements-dev.txt pytest-socket pytest-cov
+python -m pytest -q --disable-socket --cov=ragdemo --cov-report=term-missing
 ```
 
 If a test genuinely needs the network, mark it with `@pytest.mark.enable_socket`.

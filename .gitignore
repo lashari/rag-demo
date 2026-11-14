@@ -9,3 +9,7 @@ env/
 .DS_Store
 .idea/
 .vscode/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
