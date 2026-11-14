@@ -113,9 +113,36 @@ tests/          offline unit tests (pytest)
 
 ## Tests
 
+Run from the repo root:
+
 ```bash
-pytest -q
+python -m pytest -q
 ```
+
+Use `python -m pytest`, not bare `pytest`: it puts the repo root on `sys.path`
+so the `ragdemo` package imports without being installed.
+
+## CI
+
+[GitHub Actions](.github/workflows/ci.yml) runs the test suite on every push and
+pull request to `main`, on **Python 3.11 and 3.12**.
+
+- **Offline by design** — tests run with `pytest-socket --disable-socket`, so any
+  test that tries to reach the network fails. No API keys or secrets are needed.
+- **Every version reports** — `fail-fast: false` keeps one Python version's
+  failure from cancelling the other.
+- **Superseded runs are cancelled** when you push again to the same branch or PR.
+- **Read-only token** — the workflow runs with `permissions: contents: read`.
+- **Cached pip installs**, keyed on `requirements.txt` and `requirements-dev.txt`.
+
+To match CI locally:
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt pytest-socket
+python -m pytest -q --disable-socket
+```
+
+If a test genuinely needs the network, mark it with `@pytest.mark.enable_socket`.
 
 ## Design notes & honest scope
 
